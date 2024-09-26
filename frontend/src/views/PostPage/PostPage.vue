@@ -45,14 +45,9 @@
 
       <div v-else-if="commentsVisible" class="comments-section">
         <h2 class="comments-title">Комментарии</h2>
-        <CommentForm @comment-submitted="handleCommentSubmitted" :postId="Number(post.id)" />
+        <CommentForm :postId="Number(post.id)" />
         <div v-if="comments && comments.length" class="comments-list">
-          <CommentCard
-            v-for="comment in comments"
-            :key="comment.id"
-            :comment="comment"
-            @reply-submitted="handleReplySubmitted"
-          />
+          <CommentCard v-for="comment in comments" :key="comment.id" :comment="comment" />
         </div>
         <div v-else class="no-comments">
           <p>Нет комментариев для этого поста.</p>
@@ -74,7 +69,6 @@ import Loader from '@/components/Loader';
 import CommentCard from '@/components/CommentCard';
 import CommentForm from '@/components/CommentForm';
 import { storeToRefs } from 'pinia';
-import CommentAdapter from '@/adapters/CommentAdapter';
 import VoteButtons from '@/components/VoteButtons';
 
 const route = useRoute();
@@ -89,19 +83,6 @@ const toggleComments = () => {
   if (commentsVisible.value) {
     postStore.fetchComments(Number(post.value.id));
   }
-};
-
-const handleCommentSubmitted = (newComment: CommentAdapter) => {
-  postStore.addComment(newComment.content, Number(newComment.userId), Number(newComment.postId));
-};
-
-const handleReplySubmitted = (newComment: CommentAdapter) => {
-  postStore.addReply(
-    newComment.content,
-    Number(newComment.userId),
-    Number(newComment.postId),
-    Number(newComment.parentId)
-  );
 };
 
 onMounted(() => {

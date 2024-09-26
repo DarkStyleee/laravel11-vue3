@@ -20,12 +20,7 @@
       </div>
     </div>
     <div v-if="comment.children && comment.children.length" class="children-comments">
-      <CommentCard
-        v-for="child in comment.children"
-        :key="child.id"
-        :comment="child"
-        @reply-submitted="handleReplySubmitted"
-      />
+      <CommentCard v-for="child in comment.children" :key="child.id" :comment="child" />
     </div>
   </div>
 </template>
@@ -36,12 +31,10 @@ import dayjs from 'dayjs';
 import { usePostStore } from '@/stores/post';
 import { useAuthStore } from '@/stores/auth';
 import CommentAdapter from '@/adapters/CommentAdapter';
-
+import { toast } from 'vue3-toastify';
 const props = defineProps<{
   comment: CommentAdapter;
 }>();
-
-const emit = defineEmits(['reply-submitted']);
 
 const showReplyForm = ref(false);
 const replyContent = ref('');
@@ -69,23 +62,14 @@ const submitReply = async () => {
       Number(props.comment.postId),
       Number(props.comment.id)
     );
-    emit('reply-submitted', {
-      content: replyContent.value,
-      user_id: authStore.user.id,
-      post_id: props.comment.postId,
-      parent_id: props.comment.id
-    });
     replyContent.value = '';
     showReplyForm.value = false;
+    toast.success('Ответ добавлен!');
   } catch (error) {
     console.error('Ошибка при отправке ответа:', error);
   } finally {
     loading.value = false;
   }
-};
-
-const handleReplySubmitted = (newComment: CommentAdapter) => {
-  postStore.addCommentToParent(newComment, Number(props.comment.id));
 };
 </script>
 
