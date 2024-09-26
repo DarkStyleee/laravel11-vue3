@@ -35,4 +35,19 @@ class Post extends Model
     {
         return $this->hasMany(Comment::class);
     }
+
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
+    }
+
+    public function likes()
+    {
+        return $this->votes()->where('value', 1);
+    }
+
+    public function dislikes()
+    {
+        return $this->votes()->where('value', -1);
+    }
 }

@@ -5,12 +5,24 @@ import CommentAdapter from '@/adapters/CommentAdapter';
 import type { Raw } from '@/@interfaces/Raw';
 export const usePostStore = defineStore('post', {
   state: () => ({
+    posts: [] as PostAdapter[],
     post: {} as PostAdapter,
     comments: [] as CommentAdapter[],
     loading: false,
     commentsLoading: false,
   }),
   actions: {
+    async fetchPosts() {
+      this.loading = true;
+      try {
+        const res = await api.get('/posts');
+        this.posts = res.data.map((post: Raw) => PostAdapter.fromRaw(post));
+      } catch (error) {
+        console.error('Ошибка при загрузке постов:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
     async fetchPost(postId: number) {
       this.loading = true;
       try {
@@ -75,6 +87,24 @@ export const usePostStore = defineStore('post', {
       };
 
       addComment(this.comments, parentId);
+    },
+    async votePost(postId: number, value: number) {
+      try {
+        await api.post(`/posts/${postId}/vote`, { value });
+      } catch (error) {
+        console.error('Ошибка при голосовании:', error);
+      }
+    },
+    async fetchVotes(postId: number) {
+      try {
+        const res = await api.get(`/posts/${postId}/votes`);
+        if (this.post) {
+          this.post.likes = res.data.likes;
+          this.post.dislikes = res.data.dislikes;
+        }
+      } catch (error) {
+        console.error('Ошибка при получении голосов:', error);
+      }
     },
   },
 });

@@ -8,11 +8,31 @@
       <div class="post-card">
         <div class="post-header">
           <h1 class="post-title">{{ post.title }}</h1>
+          <div class="post-meta">
+            <span class="post-author"
+              >Автор: {{ post.user ? post.user.name : 'Неизвестный автор' }}</span
+            >
+            <span class="post-date"
+              >Создано: {{ new Date(post.createdAt).toLocaleDateString() }}</span
+            >
+            <span class="post-date"
+              >Обновлено: {{ new Date(post.updatedAt).toLocaleDateString() }}</span
+            >
+            <span class="post-views">Просмотры: {{ post.views }}</span>
+          </div>
         </div>
         <div class="post-body">
           <p>{{ post.content }}</p>
         </div>
         <div class="post-btns">
+          <VoteButtons
+            v-if="post.id"
+            :postId="post.id"
+            :initialLikes="post.likes"
+            :initialDislikes="post.dislikes"
+            :initialUserVote="post.userVote"
+          />
+
           <button @click="toggleComments" class="toggle-comments">
             {{ commentsVisible ? 'Скрыть комментарии' : 'Показать комментарии' }}
           </button>
@@ -25,14 +45,9 @@
 
       <div v-else-if="commentsVisible" class="comments-section">
         <h2 class="comments-title">Комментарии</h2>
-        <CommentForm @comment-submitted="handleCommentSubmitted" :postId="Number(post.id)" />
+        <CommentForm :postId="Number(post.id)" />
         <div v-if="comments && comments.length" class="comments-list">
-          <CommentCard
-            v-for="comment in comments"
-            :key="comment.id"
-            :comment="comment"
-            @reply-submitted="handleReplySubmitted"
-          />
+          <CommentCard v-for="comment in comments" :key="comment.id" :comment="comment" />
         </div>
         <div v-else class="no-comments">
           <p>Нет комментариев для этого поста.</p>
@@ -54,7 +69,7 @@ import Loader from '@/components/Loader';
 import CommentCard from '@/components/CommentCard';
 import CommentForm from '@/components/CommentForm';
 import { storeToRefs } from 'pinia';
-import CommentAdapter from '@/adapters/CommentAdapter';
+import VoteButtons from '@/components/VoteButtons';
 
 const route = useRoute();
 const postStore = usePostStore();
@@ -68,19 +83,6 @@ const toggleComments = () => {
   if (commentsVisible.value) {
     postStore.fetchComments(Number(post.value.id));
   }
-};
-
-const handleCommentSubmitted = (newComment: CommentAdapter) => {
-  postStore.addComment(newComment.content, Number(newComment.userId), Number(newComment.postId));
-};
-
-const handleReplySubmitted = (newComment: CommentAdapter) => {
-  postStore.addReply(
-    newComment.content,
-    Number(newComment.userId),
-    Number(newComment.postId),
-    Number(newComment.parentId)
-  );
 };
 
 onMounted(() => {
@@ -125,6 +127,22 @@ onMounted(() => {
     color: #1f2937;
   }
 
+  .post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.875rem;
+    color: #6b7280;
+
+    .post-author,
+    .post-date,
+    .post-views {
+      background: #e5e7eb;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+  }
+
   .post-body {
     font-size: 1.125rem;
     color: #4b5563;
@@ -135,6 +153,7 @@ onMounted(() => {
     display: flex;
     justify-content: flex-end;
     margin-top: 20px;
+    gap: 10px;
 
     .toggle-comments {
       padding: 8px 16px;

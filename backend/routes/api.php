@@ -6,6 +6,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\VoteController;
 use Illuminate\Http\Request;
 
 // Публичные маршруты (регистрация и авторизация)
@@ -29,6 +30,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::get('/users/{id}/posts', [UserController::class, 'posts']);
+
+    // Голосование
+    Route::post('/posts/{id}/vote', [VoteController::class, 'vote']);
+    Route::get('/posts/{id}/votes', [VoteController::class, 'getVotes']);
 
     // Посты
     Route::get('/posts', [PostController::class, 'index']);

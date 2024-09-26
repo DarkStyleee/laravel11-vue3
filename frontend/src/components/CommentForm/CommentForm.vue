@@ -13,12 +13,10 @@
 import { ref } from 'vue';
 import { usePostStore } from '@/stores/post';
 import { useAuthStore } from '@/stores/auth';
-
+import { toast } from 'vue3-toastify';
 const props = defineProps<{
   postId: number;
 }>();
-
-const emit = defineEmits(['comment-submitted']);
 
 const content = ref('');
 const loading = ref(false);
@@ -32,11 +30,7 @@ const submitComment = async () => {
   loading.value = true;
   try {
     await postStore.addComment(content.value, Number(authStore.user.id), props.postId);
-    emit('comment-submitted', {
-      content: content.value,
-      user_id: authStore.user.id,
-      post_id: props.postId
-    });
+    toast.success('Комментарий добавлен!');
     content.value = '';
   } catch (error) {
     console.error('Ошибка при отправке комментария:', error);

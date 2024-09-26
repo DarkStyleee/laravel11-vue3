@@ -5,52 +5,39 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Comment;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 class PostController extends Controller
 {
     // Получить все посты, отсортированные по дате создания
     public function index()
     {
-        return Post::withCount('comments') // Удалено: 'likes as likes_count'
+        return Post::withCount('comments')
+            ->with('user')
             ->orderBy('views', 'desc')
             ->get()
             ->map(function ($post) {
-                return [
-                    'id' => $post->id,
-                    'title' => $post->title,
-                    'content' => $post->content,
-                    'author' => $post->author,
-                    'authorId' => $post->author_id,
-                    'createdAt' => $post->created_at,
-                    'updatedAt' => $post->updated_at,
-                    'commentsCount' => $post->comments_count,
-                    'views' => $post->views,
-                    // Удалено: 'likesCount' и 'dislikesCount'
-                ];
+                $post->likes = $post->votes()->where('value', 1)->count();
+                $post->dislikes = $post->votes()->where('value', -1)->count();
+                $post->user_vote = Auth::check() ? $post->votes()->where('user_id', Auth::id())->value('value') : null;
+                return $post;
             });
     }
 
     // Получить конкретный пост и увеличить счетчик просмотров
     public function show($id)
     {
-        $post = Post::withCount('comments') // Удалено: 'likes as likes_count'
+        $post = Post::withCount('comments')
+            ->with('user')
             ->findOrFail($id);
 
         // Увеличение счетчика просмотров
         $post->increment('views');
 
-        return [
-            'id' => $post->id,
-            'title' => $post->title,
-            'content' => $post->content,
-            'author' => $post->author,
-            'authorId' => $post->author_id,
-            'createdAt' => $post->created_at,
-            'updatedAt' => $post->updated_at,
-            'commentsCount' => $post->comments_count,
-            'views' => $post->views,
-            // Удалено: 'likesCount' и 'dislikesCount'
-        ];
+        $post->likes = $post->votes()->where('value', 1)->count();
+        $post->dislikes = $post->votes()->where('value', -1)->count();
+        $post->user_vote = Auth::check() ? $post->votes()->where('user_id', Auth::id())->value('value') : null;
+
+        return $post;
     }
 
     // Создать новый пост
