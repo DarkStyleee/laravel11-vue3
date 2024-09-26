@@ -8,15 +8,19 @@
           <div class="post-header">
             <div class="post-author">
               <img
-                :src="`https://i.pravatar.cc/50?img=${post.authorId}`"
+                :src="`https://i.pravatar.cc/50?img=${post.userId}`"
                 alt="Аватар автора"
                 class="author-avatar"
               />
-              <span class="author-name">{{ post.author }}</span>
+              <span class="author-name">{{ post.user.name }}</span>
             </div>
             <div class="post-dates">
-              <span class="created-at">Создано: {{ formatDate(post.createdAt) }}</span>
-              <span class="updated-at">Обновлено: {{ formatDate(post.updatedAt) }}</span>
+              <span class="created-at"
+                >Создано: {{ dayjs(post.createdAt).format('DD.MM.YYYY HH:mm') }}</span
+              >
+              <span class="updated-at"
+                >Обновлено: {{ dayjs(post.updatedAt).format('DD.MM.YYYY HH:mm') }}</span
+              >
             </div>
           </div>
           <h2 class="post-title">{{ post.title }}</h2>
@@ -38,53 +42,22 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
-import api from '@/api';
+import { usePostStore } from '@/stores/post';
 import Loader from '@/components/Loader';
 import { ChatBubbleLeftRightIcon, EyeIcon } from '@heroicons/vue/24/solid';
+import dayjs from 'dayjs';
+import { storeToRefs } from 'pinia';
+import { onMounted } from 'vue';
+const postStore = usePostStore();
+const { posts, loading } = storeToRefs(postStore);
 
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  author: string;
-  authorId: number;
-  createdAt: string;
-  updatedAt: string;
-  commentsCount: number;
-  views: number;
-}
-
-const posts = ref<Post[]>([]);
-const loading = ref<boolean>(true);
-
-const fetchPostsList = async () => {
-  try {
-    const res = await api.get('/posts');
-    posts.value = res.data;
-  } catch (error) {
-    console.error('Ошибка при загрузке списка постов:', error);
-  } finally {
-    loading.value = false;
-  }
-};
+onMounted(() => {
+  postStore.fetchPosts();
+});
 
 const getExcerpt = (content: string): string => {
   return content.length > 100 ? content.substring(0, 100) + '...' : content;
 };
-
-const formatDate = (dateString: string): string => {
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  };
-  return new Date(dateString).toLocaleDateString('ru-RU', options);
-};
-
-onMounted(() => {
-  fetchPostsList();
-});
 </script>
 
 <style lang="scss" scoped>
@@ -132,6 +105,7 @@ onMounted(() => {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 10px;
+          gap: 10px;
 
           .post-author {
             display: flex;

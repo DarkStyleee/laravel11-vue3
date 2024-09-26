@@ -1,6 +1,7 @@
 import type { Raw } from '@/@interfaces/Raw';
 import type { Id } from '@/@types/IdentifiableItem';
 import { Identifier } from '@/utils/adapterUtilities';
+import UserAdapter from './UserAdapter';
 
 export default class PostAdapter {
   public id: Id;
@@ -11,6 +12,7 @@ export default class PostAdapter {
   public updatedAt: Date;
   public views: number;
   public commentsCount: number;
+  public user: UserAdapter;
 
   constructor(raw: Raw) {
     this.id = Identifier(raw['id']);
@@ -21,6 +23,7 @@ export default class PostAdapter {
     this.updatedAt = new Date(raw['updated_at']);
     this.views = Number(raw['views']);
     this.commentsCount = Number(raw['comments_count']);
+    this.user = raw['user'] ? UserAdapter.fromRaw(raw['user']) : {} as UserAdapter;
   }
 
   static toRaw(post: PostAdapter): Raw {
