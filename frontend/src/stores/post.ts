@@ -88,5 +88,23 @@ export const usePostStore = defineStore('post', {
 
       addComment(this.comments, parentId);
     },
+    async votePost(postId: number, value: number) {
+      try {
+        await api.post(`/posts/${postId}/vote`, { value });
+      } catch (error) {
+        console.error('Ошибка при голосовании:', error);
+      }
+    },
+    async fetchVotes(postId: number) {
+      try {
+        const res = await api.get(`/posts/${postId}/votes`);
+        if (this.post) {
+          this.post.likes = res.data.likes;
+          this.post.dislikes = res.data.dislikes;
+        }
+      } catch (error) {
+        console.error('Ошибка при получении голосов:', error);
+      }
+    },
   },
 });

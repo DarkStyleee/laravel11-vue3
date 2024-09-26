@@ -26,14 +26,23 @@
           <h2 class="post-title">{{ post.title }}</h2>
           <p class="post-excerpt">{{ getExcerpt(post.content) }}</p>
           <div class="post-footer">
-            <span class="comments-count">
-              <ChatBubbleLeftRightIcon class="icon" />
-              {{ post.commentsCount }}
-            </span>
-            <span class="views-count">
-              <EyeIcon class="icon" />
-              {{ post.views }}
-            </span>
+            <div class="post-footer-left">
+              <span class="comments-count">
+                <ChatBubbleLeftRightIcon class="icon" />
+                {{ post.commentsCount }}
+              </span>
+              <span class="views-count">
+                <EyeIcon class="icon" />
+                {{ post.views }}
+              </span>
+            </div>
+
+            <VoteButtons
+              :postId="post.id"
+              :initialLikes="post.likes"
+              :initialDislikes="post.dislikes"
+              :initialUserVote="post.userVote"
+            />
           </div>
         </router-link>
       </div>
@@ -48,6 +57,8 @@ import { ChatBubbleLeftRightIcon, EyeIcon } from '@heroicons/vue/24/solid';
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { onMounted } from 'vue';
+import VoteButtons from '@/components/VoteButtons';
+
 const postStore = usePostStore();
 const { posts, loading } = storeToRefs(postStore);
 
@@ -157,11 +168,18 @@ const getExcerpt = (content: string): string => {
 
         .post-footer {
           display: flex;
-          justify-content: flex-start;
+          align-items: center;
+          justify-content: space-between;
           gap: 15px;
           margin-top: 15px;
           font-size: 0.9rem;
           color: #9ca3af;
+
+          .post-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+          }
 
           .comments-count,
           .views-count {

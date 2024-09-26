@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Comment;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 class PostController extends Controller
 {
     // Получить все посты, отсортированные по дате создания
@@ -16,6 +16,9 @@ class PostController extends Controller
             ->orderBy('views', 'desc')
             ->get()
             ->map(function ($post) {
+                $post->likes = $post->votes()->where('value', 1)->count();
+                $post->dislikes = $post->votes()->where('value', -1)->count();
+                $post->user_vote = Auth::check() ? $post->votes()->where('user_id', Auth::id())->value('value') : null;
                 return $post;
             });
     }
@@ -24,10 +27,15 @@ class PostController extends Controller
     public function show($id)
     {
         $post = Post::withCount('comments')
+            ->with('user')
             ->findOrFail($id);
 
         // Увеличение счетчика просмотров
         $post->increment('views');
+
+        $post->likes = $post->votes()->where('value', 1)->count();
+        $post->dislikes = $post->votes()->where('value', -1)->count();
+        $post->user_vote = Auth::check() ? $post->votes()->where('user_id', Auth::id())->value('value') : null;
 
         return $post;
     }
